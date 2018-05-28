@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 태그를 사용할 수 있게 해주는 소스 -->
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+  <configuration>
+  	<!-- 사용할 DB를 파일로 만들고 불러낼 때에는 반드시 configuration 밑으로 -->
+  	<properties resource="db.properties" /> <!-- 그리고 경로를 적어줌 -->
+  	<!-- mapper 에 별칭주고 싶을 때 무조건 properties 밑에 environment 위에 -->
+  	<typeAliases>
+  		<typeAlias type="project.vo.Member" alias="member"/>
+  		<typeAlias type="project.vo.Voca" alias="voca"/>
+  		<typeAlias type="project.vo.VocaList" alias="vocaList"/>
+  	</typeAliases>
+	<!-- 접속정보 설정 -->
+	<environments default="development">
+		<environment id="development">
+			<!--태그안에 넣을 것이 없으면 바로 뒤에 '/'로 끝낼수있음--> 
+			<transactionManager type="JDBC" />	
+			<dataSource type="POOLED"> <!-- connection 'pooled' 사용하겠다 -->
+				<property name="driver" value="${driver}"/>	<!-- $ + {} 중괄호 안에 불러올 값의 이름을 넣어줌 -->
+				<property name="url" value="${url}"/>
+				<property name="username" value="${username}"/>
+				<property name="password" value="${password}"/>
+			</dataSource>
+		</environment>
+	</environments>
+	<!-- sql이 선언된 mapper 파일 import -->
+  	<mappers>
+  	<!--  mapper 생성 후 밑에 resource 부분 바꿔주기 -->
+  	
+  		<mapper resource="mappers/VocaBookMapper.xml" />
+  	</mappers>
+  	
+	 
+ </configuration>

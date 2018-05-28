@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ <!-- sql 설정하기~ --> 
+<mapper namespace="project.service.VocaBookMapper">
+	<!-- 회원가입 -->
+	<insert id="registerAccount">
+	INSERT INTO member(memNo,id,pw,name)
+	VALUES (member_seq.nextval,#{id},#{pw},#{name})
+	</insert>
+	<!-- 로그인 -->
+	<select id="login" parameterType="member" resultType="member">
+	SELECT notice,attendance,id,name,to_char(joinDate,'yyyy/mm/dd')as joinDate
+	FROM member
+	WHERE id like #{id} and pw like #{pw}
+	</select>
+	<!-- 아이디 중복체크 -->
+	<select id="checkId" resultType="member">
+	SELECT id 
+	FROM member
+	WHERE id = #{id}
+	</select>
+	<!-- 비번찾기 -->
+	<select id="findPw" resultType="member">
+	SELECT id,pw 
+	FROM member
+	WHERE id like #{id}
+	</select>
+	<!-- 회원탈퇴 -->
+	<delete id="deleteAccount" parameterType="member">
+	DELETE member
+	WHERE id = #{id} and pw = #{pw}
+	</delete>
+	<!-- 출석횟수 증가 -->
+	<update id="addAttendance" parameterType="member">
+	UPDATE member
+	SET attendance = attendance + 1
+	WHERE id like #{id}
+	</update>
+	<!-- 단어장 열람횟수 증가 -->
+	<update id="addStudyCount" parameterType="vocaList">
+	UPDATE vocalist
+	SET studycount = studycount + 1
+	WHERE id = #{id} and listname = #{listName}
+	</update>
+	<!-- 단어장 생성 -->
+	<insert id="insertList" parameterType="vocaList">
+	INSERT INTO vocaList(listNo,listName,id)
+	VALUES (vocaList_seq.nextval,#{listName},#{id})	
+	</insert>
+	<!-- 단어장 속의 단어값 집어넣기 -->
+	<insert id="insertWordInList" parameterType="voca">
+    INSERT INTO voca(vocaNo,listName,japan,hira,mean,listNo)
+    VALUES (voca_seq.nextval,#{listName},#{japan}, #{hira},
+            #{mean},vocaList_seq.currval)
+	</insert>
+	<!-- 단어장 생성일 별로 출력 -->
+	<select id="loadListByDate" resultType="vocaList">
+	SELECT listNo,listName,studyCount,to_char(indate,'yyyy/mm/dd')as indate
+	FROM vocaList
+	WHERE id = #{id}
+	order by listNo
+	</select>
+	<!-- 단어장 삭제 -->
+	<delete id="deleteList" >
+	DELETE vocaList
+	WHERE listNo = #{listNo}
+	</delete>
+	<!-- 이름별 단어장 검색 -->
+	<select id="searchVocaList" parameterType="vocaList" resultType="voca">
+	SELECT vocaNo,japan,hira,mean
+	FROM voca v,vocaList l
+	WHERE v.listNo=#{listNo} and l.listNo=#{listNo} and v.listName = #{listName}
+	order by v.vocaNo
+	</select>
+	<!-- 자신의 단어장 모두 소환--> 
+	<select id="getAllList" parameterType="vocaList" resultType="voca">
+	SELECT vocaNo,v.listno,l.listname,japan,hira,mean
+	FROM vocalist l,voca v
+	WHERE l.id like #{id} and l.listNo = v.listNo
+	order by vocaNo
+	</select>
+	<!-- 단어장 업그레이드 -->
+	<update id="modifyList" parameterType="voca" >
+	UPDATE voca
+	SET japan = #{japan},
+	hira = #{hira},
+	mean = #{mean}
+	WHERE vocaNo = #{vocaNo}
+	</update>
+	
+	<!-- 단어 의미 맞나 체크 -->
+	<update id="checkAnswer" parameterType="voca">
+	UPDATE voca
+	SET wrongCount = wrongCount + 1
+	WHERE vocaNo = #{vocaNo} and mean not like '%' || #{mean} || '%'	
+	</update>
+	<!-- 히라가나 맞나 체크(준형 추가) -->
+	<update id="checkAnswer2" parameterType="voca">
+	UPDATE voca
+	SET wrongCount = wrongCount + 1
+	WHERE vocaNo = #{vocaNo} <!-- and hira != #{hira} --> <!-- 준형 수정. wrongcount를 늘리기 위해 -->
+	</update>
+	
+	<!-- 오답노트 -->
+	<select id="seeWrongWords" parameterType="vocaList" resultType="voca">
+	SELECT japan,hira,mean,wrongCount
+	FROM voca v,vocaList l
+	WHERE v.listNo=#{listNo} and l.listNo=#{listNo} and v.listName = #{listName}
+	order by wrongCount desc
+	</select>
+	<!-- 단어삭제 -->
+	<delete id="deleteVoca" parameterType = "voca">
+	DELETE voca
+	WHERE vocaNo = #{vocaNo}
+	</delete>
+	
+	<!--  공유 단어장 가져오기	 -->
+	<select id="getSharing" resultType="vocaList">
+	select * from vocalist
+	where id != #{id} AND sharing = 1
+	</select>
+	<!-- 공유설정 -->
+	<update id="sharing">
+	update vocaList set sharing = #{sharing}
+	where listNo = #{listNo}
+	</update>
+	<!--  공지하기 -->
+	<update id="notice">
+	update member set notice = 1 
+	</update>
+	<!--  공지끄기 -->
+	<update id="noticeoff" parameterType="member">
+	update member set notice = 0
+	where id = #{id} 
+	</update>
+	<!-- 단어장 이름바꾸기 -->
+	<update id="changeListName" parameterType="vocaList">
+	UPDATE vocaList set listName = #{listName}
+	WHERE listNo=#{listNo}
+	</update>
+	<update id="changeListName2" parameterType="vocaList">
+	UPDATE voca set listName = #{listName}
+	where listNo = #{listNo}
+	</update>
+</mapper>
